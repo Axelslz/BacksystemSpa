@@ -5,6 +5,10 @@ import User from './models/userModel.js';
 import authRoutes from './routes/authRoutes.js';
 import clientRoutes from './routes/clientRoutes.js';
 import Client from './models/clientModel.js';
+import Service from './models/serviceModel.js';
+import Appointment from './models/appointmentModel.js';
+import serviceRoutes from './routes/serviceRoutes.js';
+import appointmentRoutes from './routes/appointmentRoutes.js';
 
 const app = express();
 
@@ -16,6 +20,8 @@ app.use((req, res, next) => {
 });
 app.use('/api/auth', authRoutes);
 app.use('/api/clientes', clientRoutes);
+app.use('/api/servicios', serviceRoutes);
+app.use('/api/citas', appointmentRoutes); 
 
 const startServer = async () => {
   try {

@@ -5,17 +5,12 @@ export const protect = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
     
-    // Si no hay header o no empieza con Bearer
     if (!authHeader || !authHeader.startsWith('Bearer')) {
       return res.status(401).json({ message: 'No hay token en la petición' });
     }
 
     const token = authHeader.split(' ')[1];
-
-    // Verificar JWT
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    // Buscar usuario y validar token contra BD
     const user = await User.findByPk(decoded.id);
 
     if (!user || user.token !== token) {

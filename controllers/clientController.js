@@ -25,8 +25,8 @@ export const registrarCliente = async (req, res) => {
 
     res.status(201).json({
       message: '¡Bienvenido a la Familia!',
-      cliente: nombreCompleto,
-      codigoUnico: codigo
+      cliente: nuevoCliente.nombreCompleto,
+      codigoUnico: nuevoCliente.codigoUnico
     });
   } catch (error) {
     res.status(500).json({ message: 'Error al generar alta', error: error.message });

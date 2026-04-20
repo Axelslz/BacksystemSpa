@@ -35,7 +35,7 @@ export const login = async (req, res) => {
     const token = jwt.sign(
       { id: user.id, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: '12h' }
+      { expiresIn: '7d' }
     );
 
     user.token = token;
@@ -125,5 +125,17 @@ export const deleteUser = async (req, res) => {
   } catch (error) {
     console.error("Error al eliminar:", error);
     res.status(500).json({ message: 'Error al eliminar el usuario' });
+  }
+};
+
+export const getEspecialistas = async (req, res) => {
+  try {
+    const especialistas = await User.findAll({ 
+      where: { role: 'empleado' },
+      attributes: ['id', 'nombre'] 
+    });
+    res.json(especialistas);
+  } catch (error) {
+    res.status(500).json({ message: 'Error al obtener especialistas' });
   }
 };
