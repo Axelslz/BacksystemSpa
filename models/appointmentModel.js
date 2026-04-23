@@ -11,11 +11,11 @@ const Appointment = sequelize.define('Appointment', {
     autoIncrement: true
   },
   fecha: {
-    type: DataTypes.DATEONLY, // Solo YYYY-MM-DD
+    type: DataTypes.DATEONLY, 
     allowNull: false
   },
   hora: {
-    type: DataTypes.TIME, // Solo HH:MM:SS
+    type: DataTypes.TIME, 
     allowNull: false
   },
   observaciones: {
