@@ -93,3 +93,28 @@ export const obtenerAgenda = async (req, res) => {
     res.status(500).json({ message: 'Error al cargar la agenda' });
   }
 };
+
+export const actualizarEstadoCita = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const estadosValidos = ['Pendiente', 'Confirmada', 'Cancelada', 'Completada'];
+    if (!estadosValidos.includes(status)) {
+      return res.status(400).json({ message: 'Estado no válido' });
+    }
+
+    const cita = await Appointment.findByPk(id);
+    if (!cita) {
+      return res.status(404).json({ message: 'Cita no encontrada' });
+    }
+
+    cita.status = status;
+    await cita.save();
+
+    res.json({ message: 'Estado actualizado correctamente', cita });
+  } catch (error) {
+    console.error("Error al actualizar estado:", error);
+    res.status(500).json({ message: 'Error al actualizar el estado de la cita' });
+  }
+};

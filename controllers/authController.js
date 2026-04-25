@@ -1,10 +1,12 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User from '../models/userModel.js';
+import Service from '../models/serviceModel.js';
 
 export const register = async (req, res) => {
   try {
-    const { nombre, email, password, role } = req.body;
+    const { nombre, email, password, role, servicios } = req.body;
+    
     const existingUser = await User.findOne({ where: { email } });
     if (existingUser) return res.status(400).json({ message: 'Email ya registrado' });
 
@@ -16,6 +18,10 @@ export const register = async (req, res) => {
       password: hashedPassword,
       role: role || 'empleado'
     });
+
+    if (servicios && servicios.length > 0) {
+      await newUser.setServicios(servicios); 
+    }
 
     res.status(201).json({ message: "Usuario creado", role: newUser.role });
   } catch (error) {
@@ -77,11 +83,10 @@ export const getUsers = async (req, res) => {
   }
 };
 
-// --- ACTUALIZAR USUARIO (CRUD - Update) ---
 export const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nombre, email, password, role, status } = req.body;
+    const { nombre, email, password, role, status, servicios } = req.body;
     
     const user = await User.findByPk(id);
     if (!user) {
@@ -100,6 +105,10 @@ export const updateUser = async (req, res) => {
 
     await user.save();
     
+    if (servicios !== undefined) {
+      await user.setServicios(servicios);
+    }
+    
     res.json({ 
       message: 'Usuario actualizado correctamente', 
       user: { id: user.id, nombre: user.nombre, email: user.email, role: user.role } 
@@ -110,7 +119,6 @@ export const updateUser = async (req, res) => {
   }
 };
 
-// --- ELIMINAR USUARIO (CRUD - Delete) ---
 export const deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
@@ -132,7 +140,13 @@ export const getEspecialistas = async (req, res) => {
   try {
     const especialistas = await User.findAll({ 
       where: { role: 'empleado' },
-      attributes: ['id', 'nombre'] 
+      attributes: ['id', 'nombre'],
+      include: [{
+        model: Service,
+        as: 'servicios',
+        attributes: ['id', 'nombre'],
+        through: { attributes: [] } 
+      }]
     });
     res.json(especialistas);
   } catch (error) {

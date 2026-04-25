@@ -9,6 +9,7 @@ import Service from './models/serviceModel.js';
 import Appointment from './models/appointmentModel.js';
 import serviceRoutes from './routes/serviceRoutes.js';
 import appointmentRoutes from './routes/appointmentRoutes.js';
+import './models/asociaciones.js';
 
 const app = express();
 
