@@ -58,3 +58,44 @@ export const buscarCliente = async (req, res) => {
     res.status(500).json({ message: 'Error en la búsqueda' });
   }
 };
+
+export const actualizarCliente = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { nombreCompleto, telefono, email, status } = req.body;
+    const cliente = await Client.findByPk(id);
+
+    if (!cliente) {
+      return res.status(404).json({ message: 'Cliente no encontrado' });
+    }
+
+    await cliente.update({
+      nombreCompleto: nombreCompleto || cliente.nombreCompleto,
+      telefono: telefono || cliente.telefono,
+      email: email || cliente.email,
+      status: status || cliente.status
+    });
+
+    res.json({ message: 'Cliente actualizado correctamente', cliente });
+  } catch (error) {
+    res.status(500).json({ message: 'Error al actualizar el cliente', error: error.message });
+  }
+};
+
+export const eliminarCliente = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const cliente = await Client.findByPk(id);
+
+    if (!cliente) {
+      return res.status(404).json({ message: 'Cliente no encontrado' });
+    }
+
+    await cliente.destroy();
+
+    res.json({ message: 'Cliente eliminado correctamente' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error al eliminar el cliente', error: error.message });
+  }
+};

@@ -83,13 +83,15 @@ export const obtenerAgenda = async (req, res) => {
       where: filtro,
       include: [
         { model: Client, as: 'cliente', attributes: ['nombreCompleto', 'telefono', 'codigoUnico'] },
-        { model: Service, as: 'servicio', attributes: ['nombre', 'precio', 'duracionMinutos'] }
+        { model: Service, as: 'servicio', attributes: ['nombre', 'precio', 'duracionMinutos'] },
+        { model: User, as: 'especialista', attributes: ['nombre'] } 
       ],
       order: [['hora', 'ASC']]
     });
 
     res.json(agenda);
   } catch (error) {
+    console.error("Error al cargar la agenda:", error); 
     res.status(500).json({ message: 'Error al cargar la agenda' });
   }
 };
