@@ -120,3 +120,29 @@ export const actualizarEstadoCita = async (req, res) => {
     res.status(500).json({ message: 'Error al actualizar el estado de la cita' });
   }
 };
+
+export const actualizarCita = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { fecha, hora, servicioId, especialistaId, observaciones } = req.body;
+
+    const cita = await Appointment.findByPk(id);
+
+    if (!cita) {
+      return res.status(404).json({ message: 'Cita no encontrada' });
+    }
+
+    await cita.update({
+      fecha: fecha || cita.fecha,
+      hora: hora || cita.hora,
+      servicioId: servicioId || cita.servicioId,
+      especialistaId: especialistaId || cita.especialistaId,
+      observaciones: observaciones !== undefined ? observaciones : cita.observaciones
+    });
+
+    res.json({ message: 'Cita actualizada correctamente', cita });
+  } catch (error) {
+    console.error("Error al actualizar la cita:", error);
+    res.status(500).json({ message: 'Error interno al actualizar la cita' });
+  }
+};
