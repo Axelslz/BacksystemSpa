@@ -6,7 +6,7 @@ const router = express.Router();
 
 router.post('/login', login);
 router.post('/logout', protect, logout); 
-router.post('/register', protect, adminOnly, register); 
+router.post('/register', register);
 router.get('/especialistas', protect, getEspecialistas);
 
 
