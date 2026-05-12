@@ -146,3 +146,104 @@ export const actualizarCita = async (req, res) => {
     res.status(500).json({ message: 'Error interno al actualizar la cita' });
   }
 };
+
+export const obtenerHorariosDisponibles = async (req, res) => {
+  try {
+    const { fecha, especialistaId, servicioId } = req.query;
+
+    if (!fecha || !especialistaId || !servicioId) return res.json([]);
+
+    const servicioNuevo = await Service.findByPk(servicioId);
+    if (!servicioNuevo) return res.status(404).json({ message: 'Servicio no encontrado' });
+
+    const duracionReq = servicioNuevo.duracionMinutos;
+
+    const citasDelDia = await Appointment.findAll({
+      where: {
+        fecha,
+        especialistaId,
+        status: ['Pendiente', 'Completada'] 
+      },
+      include: [{ model: Service, as: 'servicio', attributes: ['duracionMinutos'] }]
+    });
+
+    const horaApertura = 9 * 60;  
+    const horaCierre = 18 * 60;   
+    const intervalo = 30; 
+
+    let horariosLibres = [];
+
+    for (let min = horaApertura; min + duracionReq <= horaCierre; min += intervalo) {
+      let ocupado = false;
+
+      for (const cita of citasDelDia) {
+        const [h, m] = cita.hora.split(':');
+        const inicioCita = parseInt(h) * 60 + parseInt(m);
+        const finCita = inicioCita + cita.servicio.duracionMinutos;
+
+        if (min < finCita && (min + duracionReq) > inicioCita) {
+          ocupado = true;
+          break; 
+        }
+      }
+
+      if (!ocupado) {
+        const horasFormat = Math.floor(min / 60).toString().padStart(2, '0');
+        const minFormat = (min % 60).toString().padStart(2, '0');
+        
+        const ampm = Math.floor(min / 60) >= 12 ? 'p.m.' : 'a.m.';
+        const horas12 = Math.floor(min / 60) > 12 ? Math.floor(min / 60) - 12 : Math.floor(min / 60);
+        const horas12Format = horas12 === 0 ? 12 : horas12.toString().padStart(2, '0');
+
+        horariosLibres.push({
+          valorFormatoBD: `${horasFormat}:${minFormat}:00`, 
+          etiquetaVisual: `${horas12Format}:${minFormat} ${ampm}` 
+        });
+      }
+    }
+
+    res.json(horariosLibres);
+  } catch (error) {
+    console.error("Error calculando horarios:", error);
+    res.status(500).json({ message: 'Error al calcular disponibilidad' });
+  }
+};
+
+export const obtenerEstadisticas = async (req, res) => {
+  try {
+    
+    if (req.user.role !== 'admin') {
+       return res.status(403).json({ message: 'Acceso denegado. Solo administradores.' });
+    }
+
+    const PORCENTAJE_SPA = 0.60;
+    const PORCENTAJE_EMPLEADA = 0.40;
+
+    const citasCompletadas = await Appointment.findAll({
+      where: { status: 'Completada' },
+      include: [{ model: Service, as: 'servicio', attributes: ['precio'] }]
+    });
+
+    let ingresosTotales = 0;
+
+    citasCompletadas.forEach(cita => {
+      if (cita.servicio && cita.servicio.precio) {
+        ingresosTotales += parseFloat(cita.servicio.precio);
+      }
+    });
+
+    const gananciaSpa = ingresosTotales * PORCENTAJE_SPA;
+    const gananciaEmpleadas = ingresosTotales * PORCENTAJE_EMPLEADA;
+
+    res.json({
+      totalCitasCompletadas: citasCompletadas.length,
+      ingresosTotales: ingresosTotales,
+      gananciaSpa: gananciaSpa,
+      gananciaEmpleadas: gananciaEmpleadas
+    });
+
+  } catch (error) {
+    console.error("Error al obtener estadísticas:", error);
+    res.status(500).json({ message: 'Error interno al calcular estadísticas' });
+  }
+};
